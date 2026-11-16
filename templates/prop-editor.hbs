@@ -1,0 +1,63 @@
+<div class="mc-pe-shell">
+  <div class="mc-pe-top">
+    <label class="mc-field">{{localize "MC.name"}} <input type="text" data-pe="name" value="{{def.name}}"></label>
+    <label class="mc-field">{{localize "MC.pe.width"}} <input type="number" min="1" max="6" data-pe="w" value="{{def.w}}"></label>
+    <label class="mc-field">{{localize "MC.pe.height"}} <input type="number" min="1" max="6" data-pe="h" value="{{def.h}}"></label>
+    <label class="mc-switch"><input type="checkbox" data-pe-mode {{#unless isShapes}}checked{{/unless}}><span class="track"></span> {{localize "MC.pe.useImage"}}</label>
+  </div>
+
+  {{#if isShapes}}
+  <div class="mc-pe-body">
+    <div class="mc-pe-left">
+      <div class="mc-pe-tools">
+        {{#each tools}}<button type="button" class="mc-btn{{#if on}} on{{/if}}" data-action="tool" data-id="{{id}}">{{label}}</button>{{/each}}
+        <label class="mc-field">{{localize "MC.pe.newShapesUse"}} <select data-pe-slot>{{selectOptions slotNames selected=slot}}</select></label>
+        <label class="mc-field">{{localize "MC.pe.lineWidth"}} <input type="range" data-pe-lw min="0.02" max="0.25" step="0.01" value="{{lw}}"></label>
+        <button type="button" class="mc-btn" data-action="closePoly">{{localize "MC.pe.closePoly"}}</button>
+        <button type="button" class="mc-btn" data-action="undo"><i class="fa-solid fa-rotate-left"></i> {{localize "MC.pe.undo"}}</button>
+      </div>
+      <div class="mc-pe-view"><canvas class="mc-pe-cv"></canvas></div>
+      <p class="mc-note">{{localize "MC.pe.hint"}}</p>
+    </div>
+    <div class="mc-pe-right">
+      <h4>{{localize "MC.pe.slots"}}</h4>
+      {{#each slots}}
+      <div class="mc-pe-slot">
+        <input type="text" data-pe-name="{{id}}" value="{{name}}">
+        <select data-pe-token="{{id}}">{{selectOptions ../palette selected=token}}</select>
+        <button type="button" class="mc-swatch" data-pe-swatch="{{id}}" style="--c: {{hex}}" aria-label="{{name}}"></button>
+        <button type="button" class="mc-btn" data-action="removeSlot" data-id="{{id}}" {{#unless canRemove}}disabled{{/unless}}><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      {{/each}}
+      <button type="button" class="mc-btn" data-action="addSlot"><i class="fa-solid fa-plus"></i> {{localize "MC.pe.addSlot"}}</button>
+      <h4>{{localize "MC.pe.shapeList"}}</h4>
+      <ol class="mc-pe-shapes">
+        {{#each shapes}}
+        <li>
+          <span>{{label}}</span>
+          <select data-pe-shape="{{i}}">{{selectOptions ../slotNames selected=slot}}</select>
+          <button type="button" class="mc-btn" data-action="moveShape" data-i="{{i}}" data-d="-1"><i class="fa-solid fa-arrow-up"></i></button>
+          <button type="button" class="mc-btn" data-action="moveShape" data-i="{{i}}" data-d="1"><i class="fa-solid fa-arrow-down"></i></button>
+          <button type="button" class="mc-btn danger" data-action="delShape" data-i="{{i}}"><i class="fa-solid fa-trash"></i></button>
+        </li>
+        {{/each}}
+      </ol>
+    </div>
+  </div>
+  {{else}}
+  <div class="mc-pe-body image">
+    <div class="mc-pe-left">
+      <label class="mc-field">{{localize "MC.pe.path"}} <span class="mc-inline"><input type="text" value="{{def.image}}" readonly>
+        <button type="button" class="mc-btn" data-action="browse"><i class="fa-solid fa-folder-open"></i> {{localize "MC.pe.browse"}}</button></span></label>
+      <div class="mc-pe-view"><canvas class="mc-pe-cv"></canvas></div>
+      <p class="mc-note">{{localize "MC.pe.imageNote"}}</p>
+    </div>
+  </div>
+  {{/if}}
+
+  <footer class="mc-footer">
+    <button type="button" class="mc-btn" data-action="cancel">{{localize "MC.pe.cancel"}}</button>
+    {{#if canCopy}}<button type="button" class="mc-btn" data-action="saveCopy"><i class="fa-solid fa-copy"></i> {{localize "MC.pe.saveCopy"}}</button>{{/if}}
+    <button type="button" class="mc-btn primary" data-action="save"><i class="fa-solid fa-check"></i> {{localize "MC.pe.save"}}</button>
+  </footer>
+</div>

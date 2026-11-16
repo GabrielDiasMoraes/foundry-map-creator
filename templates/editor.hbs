@@ -1,38 +1,84 @@
-<form class="mc-form" onsubmit="return false">
-  <aside class="mc-side">
-    <label>{{localize "MC.name"}} <input type="text" data-k="name" value="{{plan.name}}"></label>
-    <label>{{localize "MC.theme"}} <select data-k="theme">{{selectOptions themes selected=plan.theme}}</select></label>
+<div class="mc-shell">
+  <nav class="mc-toolbar">
+    {{#each tools}}<button type="button" class="mc-tool" data-tool="{{id}}" data-tooltip="{{label}}" aria-label="{{label}}"><i class="fa-solid fa-{{icon}}"></i></button>{{/each}}
+  </nav>
 
-    <fieldset>
-      <legend>{{localize "MC.tools"}}</legend>
-      {{#each tools}}
-      <label class="mc-tool"><input type="radio" name="tool" value="{{id}}" {{checked checked}}> {{label}}</label>
-      {{/each}}
-      <select data-preset>{{#each props}}<option value="{{i}}" {{#if sel}}selected{{/if}}>{{name}}</option>{{/each}}</select>
-      <button type="button" data-action="furnish">{{localize "MC.furnish"}}</button>
-    </fieldset>
+  <section class="mc-main">
+    <div class="mc-bar">
+      <label class="mc-field" data-for="room open cave line door window prop apply">{{localize "MC.theme"}} <select data-k="plan.theme">{{selectOptions themes selected=plan.theme}}</select></label>
+      <label class="mc-field" data-for="room open">{{localize "MC.shapeLabel"}} <select data-k="shape">{{selectOptions shapes selected=shape}}</select></label>
+      <label class="mc-field" data-for="room open apply">{{localize "MC.wallStyle"}} <select data-k="wallStyle">{{selectOptions wallStyles selected=wallStyle}}</select></label>
+      <label class="mc-field" data-for="cave">{{localize "MC.brush"}} <input type="range" data-k="brush" min="1" max="5" step="1" value="{{brush}}"></label>
+      <button type="button" class="mc-btn" data-for="cave" data-action="roughen"><i class="fa-solid fa-wand-magic-sparkles"></i> {{localize "MC.roughen"}}</button>
+      <div class="mc-clear" data-for="erase">
+        <button type="button" class="mc-btn danger" data-action="clearAll"><i class="fa-solid fa-trash"></i> {{localize "MC.clearAll"}}</button>
+        <button type="button" class="mc-btn" data-action="clearAreas">{{localize "MC.clearAreas"}}</button>
+        <button type="button" class="mc-btn" data-action="clearLines">{{localize "MC.clearLines"}}</button>
+        <button type="button" class="mc-btn" data-action="clearDoors">{{localize "MC.clearDoors"}}</button>
+        <button type="button" class="mc-btn" data-action="clearWindows">{{localize "MC.clearWindows"}}</button>
+        <button type="button" class="mc-btn" data-action="clearProps">{{localize "MC.clearProps"}}</button>
+      </div>
+      <div class="mc-cur-box" data-for="prop"><canvas class="mc-cur" width="36" height="36"></canvas><span class="mc-curname"></span></div>
+      <button type="button" class="mc-btn" data-for="room open prop" data-action="rotate"><i class="fa-solid fa-rotate-right"></i> {{localize "MC.rotate"}} (R)</button>
+      {{#each tools}}<span class="mc-hint" data-for="{{id}}">{{hint}}</span>{{/each}}
+    </div>
+    <div class="mc-view"><canvas></canvas></div>
+  </section>
 
-    <fieldset>
-      <legend>{{localize "MC.look"}}</legend>
-      <label>{{localize "MC.floor"}} <input type="color" data-k="style.floor" value="{{plan.style.floor}}"></label>
-      <label>{{localize "MC.wall"}} <input type="color" data-k="style.wall" value="{{plan.style.wall}}"></label>
-      <label>{{localize "MC.bg"}} <input type="color" data-k="style.bg" value="{{plan.style.bg}}"></label>
-      <label>{{localize "MC.wallWidth"}} <input type="range" data-k="style.wallWidth" min="0.04" max="0.3" step="0.01" value="{{plan.style.wallWidth}}"></label>
-      <label>{{localize "MC.noise"}} <input type="range" data-k="style.noise" min="0" max="0.4" step="0.01" value="{{plan.style.noise}}"></label>
-      <label>{{localize "MC.seed"}} <input type="number" data-k="seed" value="{{plan.seed}}">
-        <button type="button" data-action="reroll" title="{{localize 'MC.reroll'}}"><i class="fa-solid fa-dice"></i></button></label>
-    </fieldset>
+  <aside class="mc-panel">
+    <div class="mc-tabs">
+      {{#each tabs}}<button type="button" data-tab="{{id}}">{{label}}</button>{{/each}}
+    </div>
 
-    <fieldset>
-      <legend>{{localize "MC.size"}}</legend>
-      <label>{{localize "MC.cols"}} <input type="number" data-k="cols" min="5" max="80" value="{{plan.cols}}"></label>
-      <label>{{localize "MC.rows"}} <input type="number" data-k="rows" min="5" max="80" value="{{plan.rows}}"></label>
-    </fieldset>
+    <div class="mc-pane" data-pane="props">
+      <div class="mc-props"></div>
+      <h4 class="mc-slots-title"></h4>
+      <div class="mc-slots mc-colors"></div>
+      <div class="mc-rowbtns">
+        <button type="button" class="mc-btn" data-action="resetColors">{{localize "MC.resetColors"}}</button>
+        <button type="button" class="mc-btn" data-action="saveVariant"><i class="fa-solid fa-copy"></i> {{localize "MC.saveVariant"}}</button>
+      </div>
+      <div class="mc-rowbtns">
+        <button type="button" class="mc-btn" data-action="newProp"><i class="fa-solid fa-plus"></i> {{localize "MC.newProp"}}</button>
+        <span class="mc-custom-btns">
+          <button type="button" class="mc-btn" data-action="editProp">{{localize "MC.editProp"}}</button>
+          <button type="button" class="mc-btn danger" data-action="deleteProp">{{localize "MC.deleteProp"}}</button>
+        </span>
+      </div>
+      <button type="button" class="mc-btn" data-action="furnish"><i class="fa-solid fa-couch"></i> {{localize "MC.furnish"}}</button>
+    </div>
 
-    <footer>
-      <button type="button" data-action="clear">{{localize "MC.clear"}}</button>
-      <button type="button" data-action="create"><i class="fa-solid fa-check"></i> {{localize "MC.create"}}</button>
+    <div class="mc-pane" data-pane="colors">
+      <p class="mc-note">{{localize "MC.paletteOf"}}</p>
+      <div class="mc-colors">
+        {{#each colors}}<div class="mc-color"><span>{{label}}</span><button type="button" class="mc-swatch" data-k="style.{{k}}" aria-label="{{label}}"></button><code data-hex="style.{{k}}"></code></div>{{/each}}
+      </div>
+      <label class="mc-field">{{localize "MC.floorPattern"}} <select data-k="style.pattern">{{selectOptions patterns selected=style.pattern}}</select></label>
+      <label class="mc-field">{{localize "MC.outsidePattern"}} <select data-k="style.outsidePattern">{{selectOptions patterns selected=style.outsidePattern}}</select></label>
+      <label class="mc-field">{{localize "MC.wallWidth"}} <input type="range" data-k="style.wallWidth" min="0.04" max="0.3" step="0.01" value="{{style.wallWidth}}"></label>
+      <label class="mc-field">{{localize "MC.noise"}} <input type="range" data-k="style.noise" min="0" max="0.4" step="0.01" value="{{style.noise}}"></label>
+      <div class="mc-rowbtns">
+        <button type="button" class="mc-btn" data-action="resetStyle">{{localize "MC.reset"}}</button>
+        <button type="button" class="mc-btn" data-action="presetStyle">{{localize "MC.presetStyle"}}</button>
+      </div>
+      <div class="mc-rowbtns">
+        <button type="button" class="mc-btn" data-action="saveTheme"><i class="fa-solid fa-floppy-disk"></i> {{localize "MC.saveTheme"}}</button>
+        <button type="button" class="mc-btn" data-action="saveThemeAs"><i class="fa-solid fa-copy"></i> {{localize "MC.saveThemeAs"}}</button>
+        {{#if customTheme}}<button type="button" class="mc-btn danger" data-action="deleteTheme">{{localize "MC.deleteTheme"}}</button>{{/if}}
+      </div>
+    </div>
+
+    <div class="mc-pane" data-pane="map">
+      <label class="mc-field">{{localize "MC.name"}} <input type="text" data-k="plan.name" value="{{plan.name}}"></label>
+      <label class="mc-field">{{localize "MC.seed"}} <span class="mc-inline"><input type="number" data-k="plan.seed" value="{{plan.seed}}">
+        <button type="button" class="mc-btn" data-action="reroll" title="{{localize 'MC.reroll'}}"><i class="fa-solid fa-dice"></i></button></span></label>
+      <label class="mc-field">{{localize "MC.cols"}} <input type="number" data-k="plan.cols" min="5" max="80" value="{{plan.cols}}"></label>
+      <label class="mc-field">{{localize "MC.rows"}} <input type="number" data-k="plan.rows" min="5" max="80" value="{{plan.rows}}"></label>
+      <div class="mc-color wide"><span>{{localize "MC.c.bg"}}</span><button type="button" class="mc-swatch" data-k="plan.bg" aria-label="{{localize 'MC.c.bg'}}"></button><code data-hex="plan.bg"></code></div>
+    </div>
+
+    <footer class="mc-footer">
+      <button type="button" class="mc-btn primary" data-action="create"><i class="fa-solid fa-check"></i> {{localize "MC.create"}}</button>
     </footer>
   </aside>
-  <div class="mc-view"><canvas></canvas></div>
-</form>
+</div>
