@@ -14,6 +14,15 @@ const ring = (n, cx, cy, rad, f) => Array.from({ length: n }, (_, i) => { const 
 const rr = (cx, cy, w, h, a, c) => P([[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, y]) => [cx + (x * Math.cos(a) - y * Math.sin(a)) / 2, cy + (x * Math.sin(a) + y * Math.cos(a)) / 2]), c);
 const star = (cx, cy, n, r1, r2, a0, c) => P(Array.from({ length: n * 2 }, (_, i) => { const a = a0 + (i / (n * 2)) * Math.PI * 2, r = i % 2 ? r2 : r1; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; }), c);
 const blob = (cx, cy, r, c, n = 9, k = 0) => P(Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2, q = r * (0.9 + 0.1 * Math.sin(i * 2.7 + k * 1.3) + 0.05 * Math.cos(i * 4.1 + k)); return [cx + Math.cos(a) * q, cy + Math.sin(a) * q]; }), c);
+// Koi seen from above: curved body, tail fan and two fins, swimming towards angle a.
+const fish = (x, y, a, len, c, bend = 0.15) => {
+  const T = ([u, v]) => [x + (u * Math.cos(a) - v * Math.sin(a)) * len, y + (u * Math.sin(a) + v * Math.cos(a)) * len];
+  return [P([[0.5, 0], [0.3, -0.13], [0, -0.1 + bend], [-0.3, -0.05 + bend * 1.6], [-0.42, bend * 2], [-0.3, 0.05 + bend * 1.6], [0, 0.1 + bend], [0.3, 0.13]].map(T), c),
+    P([[-0.38, bend * 2], [-0.7, bend * 2 - 0.2], [-0.62, bend * 2], [-0.7, bend * 2 + 0.2]].map(T), c),
+    P([[0.1, -0.1], [-0.05, -0.28], [-0.12, -0.08]].map(T), c), P([[0.1, 0.1], [-0.05, 0.28], [-0.12, 0.08]].map(T), c)];
+};
+// Soft lumpy circle: the wobble has few waves, so the edge stays smooth.
+const lump = (cx, cy, r, c, k = 0) => P(Array.from({ length: 28 }, (_, i) => { const a = (i / 28) * Math.PI * 2, q = r * (1 + 0.07 * Math.sin(2 * a + k) + 0.05 * Math.sin(3 * a + 2 * k)); return [cx + Math.cos(a) * q, cy + Math.sin(a) * q]; }), c);
 const D = (id, name, w, h, shapes, o = {}) => ({ id, name, w, h, shapes, ...o });
 const BONE = "#e8e0cc", FLAME = "#ffd27a";
 
@@ -29,32 +38,36 @@ const LIST = [
   D("trapdoor", "Trapdoor", 1, 1, [R(0.08, 0.08, 0.84, 0.84, "wood-10"), L(0.08, 0.36, 0.92, 0.36, "wood-35", 0.03), L(0.08, 0.64, 0.92, 0.64, "wood-35", 0.03), C(0.5, 0.5, 0.09, "metal"), C(0.5, 0.5, 0.045, "metal-40")]),
   D("crate", "Crate", 1, 1, [R(0.08, 0.08, 0.84, 0.84, "frame"), R(0.16, 0.16, 0.68, 0.68, "panel"), L(0.16, 0.16, 0.84, 0.84, "cross"), L(0.84, 0.16, 0.16, 0.84, "cross")], { f: 1, slots: { frame: "wood", panel: "wood-12", cross: "wood-30" } }),
   D("barrel", "Barrel", 1, 1, [C(0.5, 0.5, 0.47, "ring"), C(0.5, 0.5, 0.41, "top"), ...[-0.24, -0.12, 0, 0.12, 0.24].map((o) => { const h = Math.sqrt(0.38 * 0.38 - o * o); return L(0.5 + o, 0.5 - h, 0.5 + o, 0.5 + h, "top-24", 0.025); }), C(0.62, 0.4, 0.05, "top-45")], { f: 1, slots: { top: "wood", ring: "metal-10" } }),
-  D("chest", "Chest", 1, 1, [R(0.1, 0.2, 0.8, 0.6, "body"), R(0.1, 0.2, 0.8, 0.14, "lid"), R(0.2, 0.2, 0.08, 0.6, "metal"), R(0.72, 0.2, 0.08, 0.6, "metal"), C(0.5, 0.5, 0.06, "metal+20")], { f: 1, slots: { body: "wood", lid: "wood-20", metal: "metal" } }),
-  D("table", "Table", 2, 2, [R(0.2, 0.45, 1.6, 1.1, "top"), L(0.2, 1, 1.8, 1, "top-25", 0.03), R(0.3, 0.05, 0.45, 0.32, "chairs"), R(1.25, 0.05, 0.45, 0.32, "chairs"), R(0.3, 1.63, 0.45, 0.32, "chairs"), R(1.25, 1.63, 0.45, 0.32, "chairs")], { f: 1, slots: { top: "wood", chairs: "wood-18" } }),
+  D("chest", "Chest", 1, 1, [R(0.1, 0.2, 0.8, 0.6, "body"), L(0.2, 0.5, 0.8, 0.5, "body-30", 0.02), L(0.2, 0.65, 0.8, 0.65, "body-30", 0.02), R(0.1, 0.2, 0.8, 0.14, "lid"), R(0.2, 0.2, 0.08, 0.6, "metal"), R(0.72, 0.2, 0.08, 0.6, "metal"), R(0.43, 0.3, 0.14, 0.16, "metal+20"), C(0.5, 0.36, 0.025, "metal-60"), ...[[0.24, 0.26], [0.76, 0.26], [0.24, 0.74], [0.76, 0.74]].map(([x, y]) => C(x, y, 0.018, "metal+30"))], { f: 1, slots: { body: "wood", lid: "wood-20", metal: "metal" } }),
+  D("table", "Table", 2, 2, [R(0.2, 0.45, 1.6, 1.1, "top"), L(0.2, 1, 1.8, 1, "top-25", 0.03), ...[0.62, 0.84, 1.16, 1.38].map((y, i) => L(0.28 + i * 0.05, y, 1.72 - i * 0.07, y, "top-14", 0.015)), rr(0.31, 0.04, 0.45, 0.32, 0.06, "chairs"), rr(1.28, 0.06, 0.45, 0.32, -0.08, "chairs"), rr(0.3, 1.66, 0.45, 0.32, -0.04, "chairs"), rr(1.3, 1.62, 0.45, 0.32, 0.1, "chairs"), C(0.6, 0.78, 0.1, "top+25"), C(1.25, 1.25, 0.08, "metal+10"), C(1.5, 0.75, 0.1, "top+25")], { f: 1, slots: { top: "wood", chairs: "wood-18" } }),
   D("rug", "Rug", 2, 2, [R(0, 0, 2, 2, "rug"), R(0.1, 0.1, 1.8, 1.8, "trim"), R(0.2, 0.2, 1.6, 1.6, "rug"), C(1, 1, 0.4, "trim")], { z: 0, slots: { rug: "cloth", trim: "accent" } }),
   D("brazier", "Brazier", 1, 1, [...[0.5, 2.6, 4.7].map((a) => rr(0.5 + Math.cos(a) * 0.41, 0.5 + Math.sin(a) * 0.41, 0.2, 0.09, a, "bowl-30")), C(0.5, 0.5, 0.38, "bowl"), C(0.5, 0.5, 0.31, "inner"), C(0.5, 0.5, 0.26, "coal"), star(0.5, 0.5, 7, 0.25, 0.13, 0.3, "fire"), star(0.5, 0.5, 7, 0.14, 0.07, 0.9, "core")], { f: 1, slots: { bowl: "metal-20", inner: "metal-45", coal: "#3a1a12", fire: "accent", core: FLAME } }),
   // Dungeon, house, tavern
-  D("pillar", "Pillar", 1, 1, [R(0.06, 0.06, 0.88, 0.88, "stone-30"), R(0.12, 0.12, 0.76, 0.76, "stone-14"), C(0.5, 0.5, 0.36, "stone+4"), C(0.5, 0.5, 0.29, "stone"), C(0.5, 0.5, 0.12, "stone-14")], { f: 1, t: ["dungeon", "infernal", "oriental"] }),
+  D("pillar", "Pillar", 1, 1, [R(0.06, 0.06, 0.88, 0.88, "stone-30"), R(0.12, 0.12, 0.76, 0.76, "stone-14"), C(0.5, 0.5, 0.36, "stone+4"), C(0.5, 0.5, 0.29, "stone"), C(0.5, 0.5, 0.12, "stone-14"), L(0.62, 0.2, 0.7, 0.34, "stone-40", 0.02), L(0.7, 0.34, 0.66, 0.42, "stone-40", 0.02), P([[0.06, 0.06], [0.2, 0.06], [0.06, 0.18]], "floor")], { f: 1, t: ["dungeon", "infernal", "oriental"] }),
   D("altar", "Altar", 2, 1, [R(0.05, 0.1, 1.9, 0.8, "stone-10"), R(0.12, 0.17, 1.76, 0.66, "stone+8"), C(1, 0.5, 0.16, "accent"), L(0.3, 0.5, 0.7, 0.5, "stone-30", 0.04), L(1.3, 0.5, 1.7, 0.5, "stone-30", 0.04)], { f: 1, t: ["dungeon", "infernal", "oriental"] }),
   D("statue", "Statue", 1, 1, [R(0.08, 0.08, 0.84, 0.84, "stone-30"), R(0.14, 0.14, 0.72, 0.72, "stone-14"), rr(0.24, 0.63, 0.24, 0.11, 0.6, "stone-6"), rr(0.76, 0.63, 0.24, 0.11, -0.6, "stone-6"), E(0.5, 0.55, 0.3, 0.17, "stone"), C(0.5, 0.48, 0.13, "stone+14")], { f: 1, t: ["dungeon", "oriental", "infernal"] }),
-  D("bed", "Bed", 1, 2, [R(0.04, 0.04, 0.92, 1.92, "frame"), R(0.1, 0.3, 0.8, 1.6, "blanket"), R(0.1, 0.9, 0.8, 0.1, "blanket-20"), R(0.16, 0.1, 0.68, 0.34, "pillow")], { f: 1, t: ["house", "tavern", "wasteland", "oriental"], slots: { frame: "wood", blanket: "cloth", pillow: "cloth+35" } }),
-  D("roundtable", "Round table", 2, 2, [...ring(5, 1, 1, 0.93, (x, y, a) => rr(x, y, 0.36, 0.34, a, "chairs")), ...ring(5, 1, 1, 1.1, (x, y, a) => rr(x, y, 0.08, 0.36, a, "chairs-25")), C(1, 1, 0.72, "top-14"), C(1, 1, 0.66, "top"), ...[-0.4, -0.2, 0, 0.2, 0.4].map((o) => { const h = Math.sqrt(0.64 * 0.64 - o * o); return L(1 - h, 1 + o, 1 + h, 1 + o, "top-22", 0.02); }), C(1, 1, 0.1, "top-35")], { f: 1, t: ["tavern", "house"], slots: { top: "wood", chairs: "wood-18" } }),
+  D("bed", "Bed", 1, 2, [R(0.04, 0.04, 0.92, 1.92, "frame"), R(0.1, 0.3, 0.8, 1.6, "blanket"), P([[0.1, 0.9], [0.9, 0.86], [0.9, 1.02], [0.1, 1.05]], "blanket-20"), L(0.25, 1.35, 0.7, 1.4, "blanket-14", 0.025), L(0.3, 1.6, 0.8, 1.55, "blanket-14", 0.025), rr(0.5, 0.27, 0.68, 0.34, 0.05, "pillow")], { f: 1, t: ["house", "tavern", "wasteland", "oriental"], slots: { frame: "wood", blanket: "cloth", pillow: "cloth+35" } }),
+  D("roundtable", "Round table", 2, 2, [...[0.1, 1.4, 2.55, 3.85, 5.1].flatMap((a, i) => { const k = 0.93 + 0.04 * Math.sin(i * 2.3), x = 1 + Math.cos(a) * k, y = 1 + Math.sin(a) * k; return [rr(x, y, 0.36, 0.34, a + 0.12 * Math.cos(i * 3), "chairs"), rr(1 + Math.cos(a) * (k + 0.17), 1 + Math.sin(a) * (k + 0.17), 0.08, 0.36, a + 0.12 * Math.cos(i * 3), "chairs-25")]; }), C(1, 1, 0.72, "top-14"), C(1, 1, 0.66, "top"), ...[-0.4, -0.2, 0, 0.2, 0.4].map((o) => { const h = Math.sqrt(0.64 * 0.64 - o * o); return L(1 - h, 1 + o, 1 + h, 1 + o, "top-22", 0.02); }), C(1, 1, 0.1, "top-35")], { f: 1, t: ["tavern", "house"], slots: { top: "wood", chairs: "wood-18" } }),
   D("hearth", "Hearth", 2, 1, [R(0, 0, 2, 1, "stone-10"), R(0.2, 0.2, 1.6, 0.6, "stone-45"), C(0.7, 0.5, 0.18, "accent"), C(1.3, 0.5, 0.18, "accent"), C(1, 0.5, 0.12, "flame")], { t: ["house", "tavern"], slots: { flame: FLAME } }),
   D("bar", "Bar", 3, 1, [R(0, 0.1, 3, 0.8, "counter"), R(0.05, 0.18, 2.9, 0.64, "top"), C(0.5, 0.5, 0.1, "mugs"), C(1.2, 0.5, 0.1, "mugs"), C(2, 0.45, 0.1, "mugs"), C(2.6, 0.55, 0.1, "mugs")], { t: ["tavern"], slots: { counter: "wood-25", top: "wood", mugs: "metal+10" } }),
-  D("bookshelf", "Bookshelf", 2, 1, [R(0, 0.15, 2, 0.7, "wood-25"), ...Array.from({ length: 12 }, (_, i) => R(0.07 + i * 0.155, 0.24, 0.12, 0.52, ["cloth", "accent", "metal", "stone"][i % 4]))], { f: 1, t: ["house", "dungeon"] }),
-  D("tree", "Tree", 2, 2, [...ring(9, 1, 1, 0.58, (x, y, a) => C(x, y, 0.4 + 0.03 * Math.sin(a * 2), "leaf-12")), C(1, 1, 0.78, "leaf"), ...ring(5, 1, 1, 0.38, (x, y) => C(x - 0.06, y - 0.06, 0.3, "leaf+9")), C(0.8, 0.8, 0.2, "leaf+20"), C(1.1, 1.05, 0.08, "leaf-30")], { f: 1, t: ["oriental", "house"], slots: { leaf: "#2f5d2a" } }),
+  D("bookshelf", "Bookshelf", 2, 1, [R(0, 0.15, 2, 0.7, "wood-25"), ...Array.from({ length: 12 }, (_, i) => { const h = 0.4 + 0.12 * Math.abs(Math.sin(i * 2.9)); return R(0.07 + i * 0.155, 0.76 - h, 0.12 + 0.015 * Math.cos(i * 5), h, ["cloth", "accent", "metal", "stone"][i % 4]); })], { f: 1, t: ["house", "dungeon"] }),
+  D("tree", "Tree", 2, 2, [...[[0.4, 0.45, 0.42], [1.6, 0.5, 0.4], [1.62, 1.5, 0.38], [0.45, 1.55, 0.43], [1, 0.22, 0.34], [1.8, 1, 0.3], [1, 1.8, 0.31], [0.2, 1, 0.3]].map(([x, y, r], i) => lump(x, y, r, "leaf-12", i)), lump(1, 1, 0.8, "leaf", 3), ...[[0.7, 0.75, 0.32], [1.3, 0.85, 0.27], [0.85, 1.3, 0.3], [1.35, 1.35, 0.22]].map(([x, y, r], i) => lump(x, y, r, "leaf+9", i + 5)), lump(0.78, 0.72, 0.17, "leaf+20", 2), C(1.15, 1.1, 0.07, "leaf-30")], { f: 1, t: ["oriental", "house"], slots: { leaf: "#2f5d2a" } }),
   // Cave
   D("stalagmite", "Stalagmite", 1, 1, [blob(0.5, 0.5, 0.45, "stone-32", 11, 4), blob(0.5, 0.5, 0.35, "stone-14", 10, 5), blob(0.48, 0.47, 0.24, "stone", 9, 6), blob(0.45, 0.43, 0.11, "stone+18", 7, 7)], { f: 1, t: ["cave"] }),
   D("mushrooms", "Mushrooms", 1, 1, [E(0.5, 0.6, 0.31, 0.29, "cap-25"), E(0.5, 0.58, 0.27, 0.25, "cap"), E(0.42, 0.5, 0.13, 0.09, "cap+16"), C(0.58, 0.52, 0.055, "spots"), C(0.44, 0.68, 0.05, "spots"), C(0.66, 0.67, 0.042, "spots"), C(0.35, 0.58, 0.035, "spots"), C(0.55, 0.43, 0.03, "spots"),
     C(0.2, 0.24, 0.17, "cap-25"), C(0.2, 0.23, 0.145, "cap"), C(0.15, 0.18, 0.05, "cap+16"), C(0.25, 0.27, 0.03, "spots"), C(0.14, 0.27, 0.025, "spots"),
     C(0.8, 0.2, 0.14, "cap-25"), C(0.8, 0.19, 0.115, "cap"), C(0.77, 0.16, 0.04, "cap+16"), C(0.83, 0.22, 0.025, "spots")], { f: 1, t: ["cave"], slots: { cap: "#c0392b", spots: "#f6efe0" } }),
-  D("campfire", "Campfire", 1, 1, [C(0.5, 0.5, 0.47, "ash"), ...[0.3, 2.4, 4.5].map((a) => rr(0.5 + Math.cos(a) * 0.2, 0.5 + Math.sin(a) * 0.2, 0.48, 0.13, a, "wood-12")), ...ring(8, 0.5, 0.5, 0.4, (x, y, a) => C(x, y, 0.085 + 0.02 * Math.sin(a * 3), "stone-8")), star(0.5, 0.5, 8, 0.29, 0.14, 0, "accent"), star(0.5, 0.5, 8, 0.17, 0.08, 0.4, "flame")], { f: 1, t: ["cave", "wasteland", "oriental"], slots: { flame: FLAME, ash: "#3b342d" } }),
-  D("rubble", "Rubble", 2, 1, [P([[0.1, 0.8], [0.4, 0.2], [0.7, 0.75]], "stone-10"), P([[0.6, 0.9], [0.95, 0.3], [1.3, 0.85]], "stone"), P([[1.2, 0.7], [1.5, 0.15], [1.9, 0.8]], "stone-18"), P([[0.45, 0.85], [0.8, 0.6], [0.9, 0.9]], "stone+12")], { f: 1, t: ["wasteland", "cave", "dungeon"] }),
+  D("campfire", "Campfire", 1, 1, [blob(0.5, 0.52, 0.46, "ash", 11, 2),
+    rr(0.43, 0.5, 0.5, 0.12, 0.5, "wood-14"), rr(0.58, 0.47, 0.44, 0.13, 2.3, "wood-8"), rr(0.52, 0.6, 0.46, 0.11, 3.9, "wood-18"),
+    ...[[0.2, 0.3, 0.1], [0.14, 0.52, 0.13], [0.26, 0.78, 0.09], [0.52, 0.88, 0.12], [0.8, 0.74, 0.1], [0.88, 0.5, 0.08], [0.76, 0.24, 0.12], [0.46, 0.13, 0.08]].map(([x, y, r], k) => blob(x, y, r, sh("stone", k % 3 ? -8 : 6), 7, k)),
+    P([[0.5, 0.2], [0.58, 0.36], [0.7, 0.34], [0.64, 0.52], [0.72, 0.66], [0.55, 0.6], [0.44, 0.74], [0.36, 0.58], [0.26, 0.5], [0.4, 0.42], [0.36, 0.28]], "accent"),
+    P([[0.5, 0.36], [0.57, 0.5], [0.52, 0.64], [0.43, 0.56], [0.41, 0.46]], "flame")], { f: 1, flat: ["flame", "accent"], t: ["cave", "wasteland", "oriental"], slots: { flame: FLAME, ash: "#3b342d" } }),
+  D("rubble", "Rubble", 2, 1, [P([[0.1, 0.8], [0.25, 0.35], [0.4, 0.2], [0.62, 0.5], [0.7, 0.75]], "stone-10"), P([[0.6, 0.9], [0.8, 0.45], [0.95, 0.3], [1.15, 0.55], [1.3, 0.85]], "stone"), P([[1.2, 0.7], [1.38, 0.35], [1.5, 0.15], [1.75, 0.4], [1.9, 0.8]], "stone-18"), P([[0.45, 0.85], [0.8, 0.6], [0.9, 0.9]], "stone+12"), blob(1.1, 0.88, 0.07, "stone-5", 6, 1), blob(0.2, 0.5, 0.06, "stone-20", 6, 2), blob(1.6, 0.9, 0.08, "stone+5", 6, 4)], { f: 1, t: ["wasteland", "cave", "dungeon"] }),
   D("bones", "Bones", 2, 1, [L(0.2, 0.3, 1, 0.5, "bone", 0.09), L(0.4, 0.7, 1.3, 0.35, "bone", 0.09), L(1.1, 0.8, 1.8, 0.6, "bone", 0.09), C(0.2, 0.3, 0.07, "bone"), C(1.8, 0.6, 0.07, "bone"), C(1.5, 0.28, 0.2, "bone"), C(1.44, 0.26, 0.04, "eye"), C(1.56, 0.26, 0.04, "eye")], { f: 1, t: ["infernal", "cave", "dungeon"], slots: { bone: BONE, eye: "#222222" } }),
   // Wasteland
   D("car", "Wrecked car", 2, 4, [R(0.1, 0.1, 1.8, 3.8, "body"), R(0.2, 0.9, 1.6, 1.5, "body-25"), R(0.28, 1, 1.44, 0.55, "glass"), R(0.28, 1.75, 1.44, 0.55, "glass"), R(0.2, 0.2, 1.6, 0.6, "rust"), R(0.2, 2.6, 1.6, 1.1, "rust-10"),
     R(-0.02, 0.45, 0.18, 0.55, "tire"), R(1.84, 0.45, 0.18, 0.55, "tire"), R(-0.02, 2.9, 0.18, 0.55, "tire"), R(1.84, 2.9, 0.18, 0.55, "tire")], { t: ["wasteland"], slots: { body: "metal-10", glass: "#2b3a42", rust: "accent", tire: "#1a1a1a" } }),
-  D("sandbags", "Sandbags", 2, 1, [...[0.32, 0.98, 1.64].flatMap((x, i) => [R(x - 0.3, 0.13, 0.6, 0.34, i % 2 ? "bag-8" : "bag"), L(x - 0.17, 0.3, x + 0.17, 0.3, "bag-30", 0.02)]), ...[0.65, 1.31].flatMap((x, i) => [R(x - 0.3, 0.53, 0.6, 0.34, i % 2 ? "bag" : "bag-8"), L(x - 0.17, 0.7, x + 0.17, 0.7, "bag-30", 0.02)])], { f: 1, t: ["wasteland"], slots: { bag: "#b59f6b" } }),
+  D("sandbags", "Sandbags", 2, 1, [...[[0.32, 0.3, -0.05], [0.98, 0.31, 0.04], [1.64, 0.29, -0.03]].flatMap(([x, y, a], i) => [rr(x, y, 0.6, 0.34, a, i % 2 ? "bag-8" : "bag"), L(x - 0.17, y, x + 0.17, y + a * 0.3, "bag-30", 0.02)]), ...[[0.65, 0.72, 0.05], [1.31, 0.7, -0.06]].flatMap(([x, y, a], i) => [rr(x, y, 0.6, 0.34, a, i % 2 ? "bag" : "bag-8"), L(x - 0.17, y, x + 0.17, y + a * 0.3, "bag-30", 0.02)])], { f: 1, t: ["wasteland"], slots: { bag: "#b59f6b" } }),
   D("terminal", "Terminal", 1, 1, [R(0.08, 0.12, 0.84, 0.76, "case"), R(0.16, 0.18, 0.68, 0.4, "screen"), L(0.22, 0.28, 0.7, 0.28, "glow", 0.04), L(0.22, 0.4, 0.55, 0.4, "glow", 0.04), R(0.2, 0.65, 0.6, 0.16, "keys")], { f: 1, t: ["wasteland"], slots: { case: "metal-25", screen: "#17301f", glow: "#3ddc84", keys: "metal" } }),
   D("drum", "Oil drum", 1, 1, [C(0.5, 0.5, 0.46, "accent-30"), C(0.5, 0.5, 0.4, "accent"), C(0.5, 0.5, 0.31, "accent-14"), C(0.5, 0.5, 0.25, "accent+6"), C(0.38, 0.38, 0.055, "metal"), C(0.6, 0.62, 0.045, "metal-35")], { f: 1, t: ["wasteland"] }),
   D("vaultdoor", "Round door", 3, 3, [C(1.5, 1.5, 1.45, "metal-30"), C(1.5, 1.5, 1.25, "metal"), ...ring(10, 1.5, 1.5, 1.05, (x, y) => C(x, y, 0.09, "metal+25")), C(1.5, 1.5, 0.5, "metal-15"), L(1.5, 1, 1.5, 2, "metal+20", 0.1), L(1, 1.5, 2, 1.5, "metal+20", 0.1), C(1.5, 1.5, 0.18, "accent")], { t: ["wasteland"] }),
@@ -63,7 +76,7 @@ const LIST = [
   D("shrine", "Shrine", 2, 2, [R(0.05, 0.05, 1.9, 1.9, "wood-25"), P([[0.1, 0.1], [1.9, 0.1], [1, 1]], "cloth+5"), P([[1.9, 0.1], [1.9, 1.9], [1, 1]], "cloth-12"), P([[1.9, 1.9], [0.1, 1.9], [1, 1]], "cloth-5"), P([[0.1, 1.9], [0.1, 0.1], [1, 1]], "cloth+14"), C(1, 1, 0.15, "accent")], { t: ["oriental"] }),
   D("screen", "Paper screen", 2, 1, [R(0, 0.35, 2, 0.3, "wood-20"), ...Array.from({ length: 4 }, (_, i) => R(0.05 + i * 0.49, 0.4, 0.45, 0.2, "paper"))], { f: 1, t: ["oriental"], slots: { paper: "#efe3c2" } }),
   D("lantern", "Lantern", 1, 1, [C(0.5, 0.5, 0.48, "flame-45"), R(0.14, 0.14, 0.72, 0.72, "stone-35"), P(ring(8, 0.5, 0.5, 0.4, (x, y) => [x, y]), "stone"), ...ring(8, 0.5, 0.5, 0.4, (x, y) => L(0.5, 0.5, x, y, "stone-28", 0.02)), C(0.5, 0.5, 0.09, "stone+18")], { f: 1, t: ["oriental"], slots: { flame: FLAME } }),
-  D("pond", "Koi pond", 3, 2, [E(1.5, 1, 1.45, 0.95, "stone-10"), E(1.5, 1, 1.3, 0.8, "water"), E(1.1, 0.8, 0.35, 0.15, "fish"), P([[1.4, 0.8], [1.7, 0.7], [1.7, 0.9]], "fish"), E(1.9, 1.2, 0.3, 0.13, "fish2"), P([[1.6, 1.2], [1.35, 1.1], [1.35, 1.3]], "fish2"), C(0.8, 1.35, 0.22, "lily")], { z: 0, t: ["oriental"], slots: { water: "#3a7ca5", fish: "#ff8a3d", fish2: "#f2f2f2", lily: "#2f6b3a" } }),
+  D("pond", "Koi pond", 3, 2, [E(1.5, 1, 1.45, 0.95, "stone-10"), E(1.5, 1, 1.3, 0.8, "water-12"), E(1.5, 1, 1.05, 0.62, "water"), E(1.35, 0.9, 0.6, 0.3, "water+8"), ...fish(1.15, 0.78, 0.5, 0.62, "fish"), ...fish(1.95, 1.2, 3.5, 0.55, "fish2", -0.1), E(1.5, 1, 1.3, 0.8, "wash"), E(1.15, 0.7, 0.3, 0.07, "glint"), E(1.95, 1.3, 0.2, 0.05, "glint"), blob(0.85, 1.35, 0.22, "lily", 9, 3), P([[0.85, 1.35], [0.98, 1.2], [1.05, 1.35]], "water-12"), C(2.25, 0.7, 0.12, "lily"), C(2.25, 0.7, 0.04, "flower")], { z: 0, t: ["oriental"], slots: { water: "#3a7ca5", fish: "#e8863f", fish2: "#e9e4d8", wash: "#3a7ca580", glint: "#ffffff30", lily: "#2f6b3a", flower: "#f4a6c0" } }),
   D("bridge", "Bridge", 1, 3, [R(0.05, 0, 0.9, 3, "wood"), ...[0.5, 1, 1.5, 2, 2.5].map((y) => L(0.05, y, 0.95, y, "wood-25", 0.03)), R(0, 0, 0.1, 3, "accent"), R(0.9, 0, 0.1, 3, "accent")], { t: ["oriental"] }),
   // Infernal
   D("lava", "Lava pool", 3, 2, [E(1.5, 1, 1.45, 0.95, "stone-45"), E(1.5, 1, 1.3, 0.82, "accent"), E(1.4, 0.95, 0.9, 0.5, "accent+25"), E(1.3, 0.9, 0.4, 0.22, "flame")], { z: 0, t: ["infernal", "cave"], slots: { flame: FLAME } }),
@@ -90,7 +103,7 @@ export function reloadCustom(world) {
 
 const shade = (hex, n) => {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return "#" + c.map((v) => Math.round(v + (n > 0 ? 255 - v : v) * (n / 100)).toString(16).padStart(2, "0")).join("");
+  return "#" + c.map((v) => Math.round(v + (n > 0 ? 255 - v : v) * (n / 100)).toString(16).padStart(2, "0")).join("") + hex.slice(7);
 };
 const TOKEN = /^([a-z0-9]+?)([+-]\d+)?$/;
 const palette = (tok, s) => { if (tok[0] === "#") return tok; const m = TOKEN.exec(tok); return m[2] ? shade(s[m[1]], Number(m[2])) : s[m[1]]; };
@@ -165,11 +178,30 @@ export function drawProp(ctx, p, px, s) {
       ctx.strokeStyle = colorOf(q[5], s, d, p.colors); ctx.lineWidth = q[6]; ctx.stroke();
       return;
     }
-    if (q[0] === "r") ctx.roundRect(q[1], q[2], q[3], q[4], 0.04);
-    else if (q[0] === "e") ctx.ellipse(q[1], q[2], q[3], q[4], 0, 0, Math.PI * 2);
-    else { q[1].forEach(([x, y], j) => (j ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); }
-    ctx.fillStyle = colorOf(q.at(-1), s, d, p.colors); ctx.fill();
-    ctx.shadowColor = "transparent"; ctx.strokeStyle = "rgba(0,0,0,0.45)"; ctx.lineWidth = 0.03; ctx.stroke();
+    const path = (dx = 0, dy = 0) => {
+      ctx.beginPath();
+      if (q[0] === "r") ctx.roundRect(q[1] + dx, q[2] + dy, q[3], q[4], 0.04);
+      else if (q[0] === "e") ctx.ellipse(q[1] + dx, q[2] + dy, q[3], q[4], 0, 0, Math.PI * 2);
+      else { q[1].forEach(([x, y], j) => (j ? ctx.lineTo(x + dx, y + dy) : ctx.moveTo(x + dx, y + dy))); ctx.closePath(); }
+    };
+    const [x0, y0, x1, y1] = q[0] === "r" ? [q[1], q[2], q[1] + q[3], q[2] + q[4]]
+      : q[0] === "e" ? [q[1] - q[3], q[2] - q[4], q[1] + q[3], q[2] + q[4]]
+      : [Math.min(...q[1].map((v) => v[0])), Math.min(...q[1].map((v) => v[1])), Math.max(...q[1].map((v) => v[0])), Math.max(...q[1].map((v) => v[1]))];
+    const c = colorOf(q.at(-1), s, d, p.colors);
+    const g = ctx.createLinearGradient(x0, y0, x1, y1); // light from the top left
+    const flat = q.at(-1) === "glint" || d.flat?.includes(TOKEN.exec(q.at(-1))?.[1]); // glowing parts keep their color
+    g.addColorStop(0, shade(c, flat ? 0 : 14)); g.addColorStop(1, shade(c, flat ? 0 : -14));
+    path(); ctx.fillStyle = g; ctx.fill();
+    ctx.shadowColor = "transparent";
+    const m = Math.min(x1 - x0, y1 - y0);
+    if (m > 0.12) { // inner highlight on the lit edge, soft shade on the far edge
+      const e = Math.min(0.035, m / 6);
+      ctx.save(); path(); ctx.clip(); ctx.lineWidth = e * 1.6;
+      path(e, e); ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.stroke();
+      path(-e, -e); ctx.strokeStyle = "rgba(0,0,0,0.22)"; ctx.stroke();
+      ctx.restore();
+    }
+    path(); ctx.strokeStyle = shade(c, -48); ctx.lineWidth = 0.03; ctx.stroke();
   });
   ctx.restore();
 }

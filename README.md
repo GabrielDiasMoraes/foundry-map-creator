@@ -24,6 +24,9 @@ Draw a simple top-down map inside Foundry VTT and turn it into a Scene with wall
 3. Use the right panel: **Props** (pick props and recolor their parts), **Colors** (palette of the theme), **Map** (name, size, seed).
 4. Click **Create scene**. The PNG goes to `worlds/<world>/map-creator/` and the Scene to a "Map Creator" folder.
 
+![Colors tab](docs/screenshots/colors.png)
+![Map tab](docs/screenshots/map.png)
+
 ![Props and color picker](docs/screenshots/picker.png)
 
 ### Props and custom props
