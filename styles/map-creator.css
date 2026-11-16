@@ -1,0 +1,10 @@
+.mc .mc-form { display: flex; gap: 8px; height: 100%; }
+.mc .mc-side { flex: 0 0 220px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+.mc .mc-side label { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.mc .mc-side input[type=text], .mc .mc-side select { flex: 1; }
+.mc .mc-side input[type=number] { width: 90px; }
+.mc .mc-tool { justify-content: flex-start; }
+.mc .mc-side footer { display: flex; gap: 6px; margin-top: auto; }
+.mc .mc-side footer button { flex: 1; }
+.mc .mc-view { flex: 1; overflow: auto; background: #111; }
+.mc canvas { max-width: 100%; display: block; touch-action: none; cursor: crosshair; }

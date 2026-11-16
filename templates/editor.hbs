@@ -1,0 +1,38 @@
+<form class="mc-form" onsubmit="return false">
+  <aside class="mc-side">
+    <label>{{localize "MC.name"}} <input type="text" data-k="name" value="{{plan.name}}"></label>
+    <label>{{localize "MC.theme"}} <select data-k="theme">{{selectOptions themes selected=plan.theme}}</select></label>
+
+    <fieldset>
+      <legend>{{localize "MC.tools"}}</legend>
+      {{#each tools}}
+      <label class="mc-tool"><input type="radio" name="tool" value="{{id}}" {{checked checked}}> {{label}}</label>
+      {{/each}}
+      <select data-preset>{{#each props}}<option value="{{i}}" {{#if sel}}selected{{/if}}>{{name}}</option>{{/each}}</select>
+      <button type="button" data-action="furnish">{{localize "MC.furnish"}}</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{localize "MC.look"}}</legend>
+      <label>{{localize "MC.floor"}} <input type="color" data-k="style.floor" value="{{plan.style.floor}}"></label>
+      <label>{{localize "MC.wall"}} <input type="color" data-k="style.wall" value="{{plan.style.wall}}"></label>
+      <label>{{localize "MC.bg"}} <input type="color" data-k="style.bg" value="{{plan.style.bg}}"></label>
+      <label>{{localize "MC.wallWidth"}} <input type="range" data-k="style.wallWidth" min="0.04" max="0.3" step="0.01" value="{{plan.style.wallWidth}}"></label>
+      <label>{{localize "MC.noise"}} <input type="range" data-k="style.noise" min="0" max="0.4" step="0.01" value="{{plan.style.noise}}"></label>
+      <label>{{localize "MC.seed"}} <input type="number" data-k="seed" value="{{plan.seed}}">
+        <button type="button" data-action="reroll" title="{{localize 'MC.reroll'}}"><i class="fa-solid fa-dice"></i></button></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{localize "MC.size"}}</legend>
+      <label>{{localize "MC.cols"}} <input type="number" data-k="cols" min="5" max="80" value="{{plan.cols}}"></label>
+      <label>{{localize "MC.rows"}} <input type="number" data-k="rows" min="5" max="80" value="{{plan.rows}}"></label>
+    </fieldset>
+
+    <footer>
+      <button type="button" data-action="clear">{{localize "MC.clear"}}</button>
+      <button type="button" data-action="create"><i class="fa-solid fa-check"></i> {{localize "MC.create"}}</button>
+    </footer>
+  </aside>
+  <div class="mc-view"><canvas></canvas></div>
+</form>
