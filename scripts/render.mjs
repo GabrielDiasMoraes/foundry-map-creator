@@ -1,21 +1,28 @@
-import { planToWalls } from "./walls.mjs";
-import { THEMES } from "./themes.mjs";
+import { geometry } from "./walls.mjs";
+import { inPoly } from "./shapes.mjs";
+import { paintCell } from "./patterns.mjs";
+import { drawProp, PROPS } from "./props.mjs";
+import { styleFor } from "./themes.mjs";
 
-export const mulberry32 = (a) => () => {
-  a |= 0; a = (a + 0x6d2b79f5) | 0;
-  let t = Math.imul(a ^ (a >>> 15), 1 | a);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+const trace = (ctx, loops, px) => {
+  ctx.beginPath();
+  for (const l of loops) { l.forEach(([x, y], i) => ctx[i ? "lineTo" : "moveTo"](x * px, y * px)); ctx.closePath(); }
 };
+const SAMPLES = [[0, 0], [0.5, 0], [1, 0], [0, 0.5], [0.5, 0.5], [1, 0.5], [0, 1], [0.5, 1], [1, 1]];
+
+// Open areas first, then closed ones, each in drawing order.
+const drawOrder = (g) => [...g.areas.filter((o) => o.a.open), ...g.areas.filter((o) => !o.a.open)];
+
+// Style of the topmost area under a point, else the base theme.
+function styleAt(plan, g, x, y) {
+  const o = drawOrder(g).findLast((q) => inPoly(q.fine, x, y));
+  return styleFor(plan, o?.a.theme);
+}
 
 // Draws the plan on a 2D context. Same function for the preview and the final PNG, only px (pixels per cell) differs.
 export function render(plan, ctx, px, { guides = false } = {}) {
-  const { cols, rows, style: s } = plan;
-  const th = THEMES[plan.theme];
-  const rnd = mulberry32(plan.seed);
-  const line = Math.max(1, px / 40);
-
-  ctx.fillStyle = s.bg;
+  const { cols, rows, seed } = plan, g = geometry(plan);
+  ctx.fillStyle = plan.bg;
   ctx.fillRect(0, 0, cols * px, rows * px);
   if (guides) {
     ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 1; ctx.beginPath();
@@ -24,40 +31,47 @@ export function render(plan, ctx, px, { guides = false } = {}) {
     ctx.stroke();
   }
 
-  // Floor: one pass per room cell, seeded noise and pattern.
-  const done = new Set();
-  for (const r of plan.rooms) for (let x = r.x; x < r.x + r.w; x++) for (let y = r.y; y < r.y + r.h; y++) {
-    if (done.has(`${x},${y}`)) continue;
-    done.add(`${x},${y}`);
-    const X = x * px, Y = y * px, n = rnd() * s.noise;
-    ctx.fillStyle = s.floor; ctx.fillRect(X, Y, px, px);
-    ctx.fillStyle = rnd() < 0.5 ? `rgba(0,0,0,${n})` : `rgba(255,255,255,${n / 2})`; ctx.fillRect(X, Y, px, px);
-    ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = line; ctx.beginPath();
-    if (th.pattern === "tiles") ctx.rect(X, Y, px, px);
-    else {
-      for (let k = 0; k < 3; k++) { ctx.moveTo(X, Y + (k * px) / 3); ctx.lineTo(X + px, Y + (k * px) / 3); }
-      for (let k = 0; k < 3; k++) { const j = X + rnd() * px, yy = Y + (k * px) / 3; ctx.moveTo(j, yy); ctx.lineTo(j, yy + px / 3); }
+  // Floors: each area is clipped to its outline and painted with its own theme.
+  for (const { a, fine, box } of drawOrder(g)) {
+    const s = styleFor(plan, a.theme);
+    ctx.save(); trace(ctx, fine, px); ctx.clip("evenodd");
+    for (let x = Math.max(0, Math.floor(box[0]) - 1); x < Math.min(cols, Math.ceil(box[2]) + 1); x++) {
+      for (let y = Math.max(0, Math.floor(box[1]) - 1); y < Math.min(rows, Math.ceil(box[3]) + 1); y++) {
+        if (SAMPLES.some(([u, v]) => inPoly(fine, x + u, y + v))) paintCell(ctx, x, y, px, seed, s, a.open ? s.outside : s.floor, a.open ? s.outsidePattern : s.pattern);
+      }
     }
-    ctx.stroke();
+    if (a.rough && !a.open) { trace(ctx, fine, px); ctx.strokeStyle = "rgba(0,0,0,0.28)"; ctx.lineWidth = px * 0.5; ctx.lineJoin = "round"; ctx.stroke(); } // inner shade
+    ctx.restore();
   }
 
-  for (const p of plan.props) {
-    const X = p.x * px, Y = p.y * px, w = p.w * px, h = p.h * px;
-    ctx.fillStyle = p.color; ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = line * 1.5; ctx.beginPath();
-    if (p.shape === "circle") ctx.ellipse(X + w / 2, Y + h / 2, w * 0.45, h * 0.45, 0, 0, Math.PI * 2);
-    else ctx.roundRect(X + px * 0.08, Y + px * 0.08, w - px * 0.16, h - px * 0.16, px * 0.08);
-    ctx.fill(); ctx.stroke();
-  }
+  // One path per theme, so overlapping alpha strokes do not darken the joints.
+  const byTheme = (pred) => {
+    const m = new Map();
+    for (const p of g.pieces) if (pred(p)) m.set(p[5], [...(m.get(p[5]) || []), p]);
+    return m;
+  };
+  const stroke = (ps, color, w, cap) => {
+    ctx.beginPath();
+    for (const p of ps) { ctx.moveTo(p[0] * px, p[1] * px); ctx.lineTo(p[2] * px, p[3] * px); }
+    ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = cap; ctx.lineJoin = "round"; ctx.stroke();
+  };
+  const roughWalls = byTheme((p) => p[4] === "wall" && p[6]), straight = byTheme((p) => p[4] === "wall" && !p[6]);
+  for (const [t, ps] of roughWalls) stroke(ps, "rgba(0,0,0,0.3)", styleFor(plan, t).wallWidth * px * 3.5, "round"); // halo
 
-  const t = s.wallWidth * px, segs = planToWalls(plan);
-  ctx.lineCap = "square"; ctx.strokeStyle = s.wall; ctx.lineWidth = t;
-  for (const [a, b, c, d, k] of segs) if (k === "wall") { ctx.beginPath(); ctx.moveTo(a * px, b * px); ctx.lineTo(c * px, d * px); ctx.stroke(); }
-  for (const [a, b, c, d, k] of segs) {
-    if (k === "wall") continue;
-    const cx = ((a + c) / 2) * px, cy = ((b + d) / 2) * px, horiz = b === d;
-    const w = horiz ? px : t * (k === "door" ? 1.6 : 1), h = horiz ? t * (k === "door" ? 1.6 : 1) : px;
-    ctx.fillStyle = k === "door" ? "#8b5a2b" : "#9fd3ee";
-    if (k === "door") { ctx.fillRect(cx - (horiz ? px * 0.4 : w / 2), cy - (horiz ? h / 2 : px * 0.4), horiz ? px * 0.8 : w, horiz ? h : px * 0.8); }
-    else { ctx.fillStyle = s.wall; ctx.fillRect(cx - w / 2, cy - h / 2, w, h); ctx.fillStyle = "#9fd3ee"; ctx.fillRect(cx - (horiz ? w / 2 : t * 0.25), cy - (horiz ? t * 0.25 : h / 2), horiz ? w : t * 0.5, horiz ? t * 0.5 : h); }
+  const props = plan.props.filter((p) => PROPS[p.id]).sort((a, b) => (PROPS[a.id].z ?? 1) - (PROPS[b.id].z ?? 1));
+  for (const p of props) drawProp(ctx, p, px, styleAt(plan, g, p.x + 0.5, p.y + 0.5));
+
+  for (const [t, ps] of roughWalls) { const s = styleFor(plan, t); stroke(ps, s.wall, s.wallWidth * px * 1.6, "round"); }
+  for (const [t, ps] of straight) { const s = styleFor(plan, t); stroke(ps, s.wall, s.wallWidth * px, "square"); }
+
+  for (const p of g.pieces) {
+    if (p[4] === "wall") continue;
+    const s = styleFor(plan, p[5]), L = Math.hypot(p[2] - p[0], p[3] - p[1]) * px, t = s.wallWidth * px * (p[4] === "door" ? 1.6 : 1);
+    ctx.save();
+    ctx.translate(((p[0] + p[2]) / 2) * px, ((p[1] + p[3]) / 2) * px);
+    ctx.rotate(Math.atan2(p[3] - p[1], p[2] - p[0]));
+    if (p[4] === "door") { ctx.fillStyle = s.door; ctx.fillRect(-L * 0.4, -t / 2, L * 0.8, t); }
+    else { ctx.fillStyle = s.wall; ctx.fillRect(-L / 2, -t / 2, L, t); ctx.fillStyle = s.window; ctx.fillRect(-L / 2, -t * 0.25, L, t * 0.5); }
+    ctx.restore();
   }
 }
