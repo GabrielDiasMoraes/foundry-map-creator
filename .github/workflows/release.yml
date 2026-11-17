@@ -14,7 +14,7 @@ jobs:
           sed -i "s/\"version\": \".*\"/\"version\": \"${GITHUB_REF_NAME#v}\"/" module.json
           sed -i "s#\"download\": \".*\"#\"download\": \"https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/module.zip\"#" module.json
       - run: zip -r module.zip module.json scripts styles templates lang LICENSE README.md
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: |
             module.json

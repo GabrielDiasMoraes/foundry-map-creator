@@ -178,9 +178,10 @@ export class PropEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.mode === "image" && !d.image) return ui.notifications.warn(loc("MC.pe.noImage"));
     let name = d.name.trim() || loc("MC.pe.title");
     if (copy) { name = await askName(loc("MC.pe.saveCopy"), `${name} copy`); if (!name) return; }
-    const out = { id: copy || !d.id ? uid() : d.id, name, w: d.w, h: d.h };
-    if (this.mode === "image") out.image = d.image;
-    else Object.assign(out, JSON.parse(JSON.stringify({ shapes: d.shapes, slots: d.slots, names: d.names })));
+    const { custom, t, theme, ...keep } = d; // keeps z, f and flat of a copied built-in prop
+    const out = { ...keep, id: copy || !d.id ? uid() : d.id, name };
+    if (this.mode === "image") { out.image = d.image; delete out.shapes; delete out.slots; delete out.names; }
+    else delete out.image;
     await saveProp(this.theme, out);
     ui.notifications.info(loc("MC.pe.saved"));
     this.onSave(out);

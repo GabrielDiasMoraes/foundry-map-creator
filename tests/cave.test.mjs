@@ -35,3 +35,15 @@ test("grow is deterministic and stays near the cave", () => {
   assert.deepEqual(a, grow(cells, 3));
   assert.ok(a.length > 0 && a.every(([x, y]) => x >= -1 && x <= 6 && y >= -1 && y <= 6));
 });
+
+test("every cell the outline touches is within one cell of a brush cell", async () => {
+  const { areaLoops, inPoly } = await import("../scripts/shapes.mjs");
+  const cells = [];
+  for (let x = 2; x < 12; x++) for (let y = 2; y < 9; y++) if ((x * 7 + y * 13) % 5 < 4) cells.push([x, y]);
+  const near = new Set(cells.flatMap(([cx, cy]) => [-1, 0, 1].flatMap((dx) => [-1, 0, 1].map((dy) => `${cx + dx},${cy + dy}`))));
+  for (const seed of [1, 7, 42]) {
+    const fine = areaLoops({ shape: "cells", cells, rough: true }, seed, true);
+    for (let x = 0; x < 14; x++) for (let y = 0; y < 11; y++)
+      for (const [u, v] of [[0, 0], [0.5, 0.5], [1, 1], [0, 1], [1, 0]]) if (inPoly(fine, x + u, y + v)) assert.ok(near.has(`${x},${y}`), `${x},${y} seed ${seed}`);
+  }
+});

@@ -35,3 +35,10 @@ test("a variant keeps the shapes, takes the colors and leaves the original alone
   assert.match(v.id, /^c-/);
   assert.equal(PROPS.chest.slots.lid, "wood-20");
 });
+
+test("see-through slot colors keep their alpha and a copy keeps the flat list", () => {
+  assert.equal(colorOf("wash", style, PROPS.pond).length, 9);
+  assert.equal(colorOf("water-12", style, { slots: { water: "#3a7ca580" } }).length, 9);
+  assert.deepEqual(variantOf(PROPS.campfire, {}, "Copy", "cave").flat, PROPS.campfire.flat);
+  assert.ok(variantOf(PROPS.pond, {}, "Copy", "oriental").slots.wash, "copies keep every slot");
+});

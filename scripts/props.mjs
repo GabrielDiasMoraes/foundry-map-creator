@@ -43,7 +43,7 @@ const LIST = [
   D("rug", "Rug", 2, 2, [R(0, 0, 2, 2, "rug"), R(0.1, 0.1, 1.8, 1.8, "trim"), R(0.2, 0.2, 1.6, 1.6, "rug"), C(1, 1, 0.4, "trim")], { z: 0, slots: { rug: "cloth", trim: "accent" } }),
   D("brazier", "Brazier", 1, 1, [...[0.5, 2.6, 4.7].map((a) => rr(0.5 + Math.cos(a) * 0.41, 0.5 + Math.sin(a) * 0.41, 0.2, 0.09, a, "bowl-30")), C(0.5, 0.5, 0.38, "bowl"), C(0.5, 0.5, 0.31, "inner"), C(0.5, 0.5, 0.26, "coal"), star(0.5, 0.5, 7, 0.25, 0.13, 0.3, "fire"), star(0.5, 0.5, 7, 0.14, 0.07, 0.9, "core")], { f: 1, slots: { bowl: "metal-20", inner: "metal-45", coal: "#3a1a12", fire: "accent", core: FLAME } }),
   // Dungeon, house, tavern
-  D("pillar", "Pillar", 1, 1, [R(0.06, 0.06, 0.88, 0.88, "stone-30"), R(0.12, 0.12, 0.76, 0.76, "stone-14"), C(0.5, 0.5, 0.36, "stone+4"), C(0.5, 0.5, 0.29, "stone"), C(0.5, 0.5, 0.12, "stone-14"), L(0.62, 0.2, 0.7, 0.34, "stone-40", 0.02), L(0.7, 0.34, 0.66, 0.42, "stone-40", 0.02), P([[0.06, 0.06], [0.2, 0.06], [0.06, 0.18]], "floor")], { f: 1, t: ["dungeon", "infernal", "oriental"] }),
+  D("pillar", "Pillar", 1, 1, [R(0.06, 0.06, 0.88, 0.88, "stone-30"), R(0.12, 0.12, 0.76, 0.76, "stone-14"), C(0.5, 0.5, 0.36, "stone+4"), C(0.5, 0.5, 0.29, "stone"), C(0.5, 0.5, 0.12, "stone-14"), L(0.62, 0.2, 0.7, 0.34, "stone-40", 0.02), L(0.7, 0.34, 0.66, 0.42, "stone-40", 0.02)], { f: 1, t: ["dungeon", "infernal", "oriental"] }),
   D("altar", "Altar", 2, 1, [R(0.05, 0.1, 1.9, 0.8, "stone-10"), R(0.12, 0.17, 1.76, 0.66, "stone+8"), C(1, 0.5, 0.16, "accent"), L(0.3, 0.5, 0.7, 0.5, "stone-30", 0.04), L(1.3, 0.5, 1.7, 0.5, "stone-30", 0.04)], { f: 1, t: ["dungeon", "infernal", "oriental"] }),
   D("statue", "Statue", 1, 1, [R(0.08, 0.08, 0.84, 0.84, "stone-30"), R(0.14, 0.14, 0.72, 0.72, "stone-14"), rr(0.24, 0.63, 0.24, 0.11, 0.6, "stone-6"), rr(0.76, 0.63, 0.24, 0.11, -0.6, "stone-6"), E(0.5, 0.55, 0.3, 0.17, "stone"), C(0.5, 0.48, 0.13, "stone+14")], { f: 1, t: ["dungeon", "oriental", "infernal"] }),
   D("bed", "Bed", 1, 2, [R(0.04, 0.04, 0.92, 1.92, "frame"), R(0.1, 0.3, 0.8, 1.6, "blanket"), P([[0.1, 0.9], [0.9, 0.86], [0.9, 1.02], [0.1, 1.05]], "blanket-20"), L(0.25, 1.35, 0.7, 1.4, "blanket-14", 0.025), L(0.3, 1.6, 0.8, 1.55, "blanket-14", 0.025), rr(0.5, 0.27, 0.68, 0.34, 0.05, "pillow")], { f: 1, t: ["house", "tavern", "wasteland", "oriental"], slots: { frame: "wood", blanket: "cloth", pillow: "cloth+35" } }),
@@ -76,7 +76,7 @@ const LIST = [
   D("shrine", "Shrine", 2, 2, [R(0.05, 0.05, 1.9, 1.9, "wood-25"), P([[0.1, 0.1], [1.9, 0.1], [1, 1]], "cloth+5"), P([[1.9, 0.1], [1.9, 1.9], [1, 1]], "cloth-12"), P([[1.9, 1.9], [0.1, 1.9], [1, 1]], "cloth-5"), P([[0.1, 1.9], [0.1, 0.1], [1, 1]], "cloth+14"), C(1, 1, 0.15, "accent")], { t: ["oriental"] }),
   D("screen", "Paper screen", 2, 1, [R(0, 0.35, 2, 0.3, "wood-20"), ...Array.from({ length: 4 }, (_, i) => R(0.05 + i * 0.49, 0.4, 0.45, 0.2, "paper"))], { f: 1, t: ["oriental"], slots: { paper: "#efe3c2" } }),
   D("lantern", "Lantern", 1, 1, [C(0.5, 0.5, 0.48, "flame-45"), R(0.14, 0.14, 0.72, 0.72, "stone-35"), P(ring(8, 0.5, 0.5, 0.4, (x, y) => [x, y]), "stone"), ...ring(8, 0.5, 0.5, 0.4, (x, y) => L(0.5, 0.5, x, y, "stone-28", 0.02)), C(0.5, 0.5, 0.09, "stone+18")], { f: 1, t: ["oriental"], slots: { flame: FLAME } }),
-  D("pond", "Koi pond", 3, 2, [E(1.5, 1, 1.45, 0.95, "stone-10"), E(1.5, 1, 1.3, 0.8, "water-12"), E(1.5, 1, 1.05, 0.62, "water"), E(1.35, 0.9, 0.6, 0.3, "water+8"), ...fish(1.15, 0.78, 0.5, 0.62, "fish"), ...fish(1.95, 1.2, 3.5, 0.55, "fish2", -0.1), E(1.5, 1, 1.3, 0.8, "wash"), E(1.15, 0.7, 0.3, 0.07, "glint"), E(1.95, 1.3, 0.2, 0.05, "glint"), blob(0.85, 1.35, 0.22, "lily", 9, 3), P([[0.85, 1.35], [0.98, 1.2], [1.05, 1.35]], "water-12"), C(2.25, 0.7, 0.12, "lily"), C(2.25, 0.7, 0.04, "flower")], { z: 0, t: ["oriental"], slots: { water: "#3a7ca5", fish: "#e8863f", fish2: "#e9e4d8", wash: "#3a7ca580", glint: "#ffffff30", lily: "#2f6b3a", flower: "#f4a6c0" } }),
+  D("pond", "Koi pond", 3, 2, [E(1.5, 1, 1.45, 0.95, "stone-10"), E(1.5, 1, 1.3, 0.8, "water-12"), E(1.5, 1, 1.05, 0.62, "water"), E(1.35, 0.9, 0.6, 0.3, "water+8"), ...fish(1.15, 0.78, 0.5, 0.62, "fish"), ...fish(1.95, 1.2, 3.5, 0.55, "fish2", -0.1), E(1.5, 1, 1.3, 0.8, "wash"), E(1.15, 0.7, 0.3, 0.07, "glint"), E(1.95, 1.3, 0.2, 0.05, "glint"), blob(0.85, 1.35, 0.22, "lily", 9, 3), P([[0.85, 1.35], [0.98, 1.2], [1.05, 1.35]], "water-12"), C(2.25, 0.7, 0.12, "lily"), C(2.25, 0.7, 0.04, "flower")], { z: 0, flat: ["glint"], t: ["oriental"], slots: { water: "#3a7ca5", fish: "#e8863f", fish2: "#e9e4d8", wash: "#3a7ca580", glint: "#ffffff30", lily: "#2f6b3a", flower: "#f4a6c0" } }),
   D("bridge", "Bridge", 1, 3, [R(0.05, 0, 0.9, 3, "wood"), ...[0.5, 1, 1.5, 2, 2.5].map((y) => L(0.05, y, 0.95, y, "wood-25", 0.03)), R(0, 0, 0.1, 3, "accent"), R(0.9, 0, 0.1, 3, "accent")], { t: ["oriental"] }),
   // Infernal
   D("lava", "Lava pool", 3, 2, [E(1.5, 1, 1.45, 0.95, "stone-45"), E(1.5, 1, 1.3, 0.82, "accent"), E(1.4, 0.95, 0.9, 0.5, "accent+25"), E(1.3, 0.9, 0.4, 0.22, "flame")], { z: 0, t: ["infernal", "cave"], slots: { flame: FLAME } }),
@@ -134,7 +134,7 @@ export function slotEntries(d) {
 export function variantOf(d, colors, name, theme) {
   const slots = {};
   for (const { id, def } of slotEntries(d)) slots[id] = colors?.[id] ?? def;
-  const copy = JSON.parse(JSON.stringify({ name, w: d.w, h: d.h, shapes: d.shapes, slots, names: d.names, image: d.image, z: d.z, f: d.f }));
+  const copy = JSON.parse(JSON.stringify({ name, w: d.w, h: d.h, shapes: d.shapes, slots, names: d.names, image: d.image, z: d.z, f: d.f, flat: d.flat }));
   return { ...copy, id: `c-${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`, theme };
 }
 
@@ -189,7 +189,7 @@ export function drawProp(ctx, p, px, s) {
       : [Math.min(...q[1].map((v) => v[0])), Math.min(...q[1].map((v) => v[1])), Math.max(...q[1].map((v) => v[0])), Math.max(...q[1].map((v) => v[1]))];
     const c = colorOf(q.at(-1), s, d, p.colors);
     const g = ctx.createLinearGradient(x0, y0, x1, y1); // light from the top left
-    const flat = q.at(-1) === "glint" || d.flat?.includes(TOKEN.exec(q.at(-1))?.[1]); // glowing parts keep their color
+    const flat = d.flat?.includes(TOKEN.exec(q.at(-1))?.[1]); // glowing parts keep their color
     g.addColorStop(0, shade(c, flat ? 0 : 14)); g.addColorStop(1, shade(c, flat ? 0 : -14));
     path(); ctx.fillStyle = g; ctx.fill();
     ctx.shadowColor = "transparent";

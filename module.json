@@ -2,7 +2,7 @@
   "id": "foundry-map-creator",
   "title": "Map Creator",
   "description": "Draw a top-down map with rooms of any shape, caves, doors, windows and detailed props. Every area has its own theme and colors. Preview live and create a ready Scene with walls.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13.351"

@@ -34,10 +34,12 @@ export function render(plan, ctx, px, { guides = false } = {}) {
   // Floors: each area is clipped to its outline and painted with its own theme.
   for (const { a, fine, box } of drawOrder(g)) {
     const s = styleFor(plan, a.theme);
+    // Cave areas: the outline stays within a cell of the brush cells, so test cells by lookup instead of by polygon.
+    const near = a.cells && new Set(a.cells.flatMap(([cx, cy]) => [-1, 0, 1].flatMap((dx) => [-1, 0, 1].map((dy) => `${cx + dx},${cy + dy}`))));
     ctx.save(); trace(ctx, fine, px); ctx.clip("evenodd");
     for (let x = Math.max(0, Math.floor(box[0]) - 1); x < Math.min(cols, Math.ceil(box[2]) + 1); x++) {
       for (let y = Math.max(0, Math.floor(box[1]) - 1); y < Math.min(rows, Math.ceil(box[3]) + 1); y++) {
-        if (SAMPLES.some(([u, v]) => inPoly(fine, x + u, y + v))) paintCell(ctx, x, y, px, seed, s, a.open ? s.outside : s.floor, a.open ? s.outsidePattern : s.pattern);
+        if (near ? near.has(`${x},${y}`) : SAMPLES.some(([u, v]) => inPoly(fine, x + u, y + v))) paintCell(ctx, x, y, px, seed, s, a.open ? s.outside : s.floor, a.open ? s.outsidePattern : s.pattern);
       }
     }
     if (a.rough && !a.open) { trace(ctx, fine, px); ctx.strokeStyle = "rgba(0,0,0,0.28)"; ctx.lineWidth = px * 0.5; ctx.lineJoin = "round"; ctx.stroke(); } // inner shade

@@ -246,7 +246,7 @@ export class MapCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.element.querySelector(".mc-custom-btns").classList.toggle("custom", !!PROPS[this.prop]?.custom);
     if (d.image) { box.replaceChildren(Object.assign(document.createElement("p"), { className: "mc-note", textContent: game.i18n.localize("MC.imageNoColors") })); return; }
     const now = (sid) => this.#colors()[sid] ?? colorOf(sid, this.style, d);
-    box.replaceChildren(...slotEntries(d).map(({ id: sid, name }) => {
+    box.replaceChildren(...slotEntries(d).filter(({ def }) => !/^#[0-9a-f]{8}$/i.test(def)).map(({ id: sid, name }) => { // see-through parts (pond water) cannot be recolored with the opaque picker
       const wrap = document.createElement("div"), b = document.createElement("button");
       wrap.className = "mc-color"; b.type = "button"; b.className = "mc-swatch"; b.title = name;
       b.style.setProperty("--c", now(sid));

@@ -1,13 +1,16 @@
 import { planToWalls } from "./walls.mjs";
 import { render } from "./render.mjs";
+import { preload } from "./props.mjs";
 
 const PX = 100; // pixels per grid cell in the final image
 
 export async function createScene(plan) {
   const cv = document.createElement("canvas");
   cv.width = plan.cols * PX; cv.height = plan.rows * PX;
+  await preload(plan.props); // image props must be loaded before they are drawn
   render(plan, cv.getContext("2d"), PX);
   const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+  if (!blob) throw new Error("Map Creator: the map is too big to render on this device"); // toBlob gives null when the canvas is too large
 
   const slug = plan.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "map";
   const FP = foundry.applications.apps.FilePicker.implementation;
